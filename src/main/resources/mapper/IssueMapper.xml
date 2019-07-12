@@ -1,11 +1,203 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
-<mapper namespace="com.ngtesting.platform.dao.IssueDao" >
-    <select id="get" resultType="IsuIssue">
-        SELECT * FROM IsuIssue o
+<mapper namespace="com.ngtesting.platform.dao.IssueDao">
+    <select id="getById" resultType="IsuIssue">
+        SELECT o.*
+        FROM "IsuIssue" o
         WHERE o.id = #{id}
-        <if test="orgId != null">
-            AND o.orgId=#{orgId}
-        </if>
     </select>
+
+    <select id="get" resultType="IsuIssue">
+        SELECT o.*,
+               (select (count(id) > 0)
+                FROM "IsuWatch"
+                WHERE "issueId" = ${id}
+                  AND "userId" = ${userId}) watched
+
+        FROM "IsuIssue" o
+        WHERE o.id = #{id}
+        AND o."projectId" = #{prjId}
+    </select>
+
+    <select id="getDetail" resultMap="issueMaps">
+        SELECT o.*,
+               (select (count(id) > 0)
+                FROM "IsuWatch"
+                WHERE "issueId" = ${id}
+                  AND "userId" = ${userId}) watched
+
+        FROM "IsuIssue" o
+        WHERE o.id = #{id}
+          AND o."projectId" = #{prjId}
+    </select>
+
+    <select id="getData" resultMap="issueData">
+        SELECT o.*
+
+        FROM "IsuIssue" o
+        WHERE o.id = #{id}
+          AND o."projectId" = #{prjId}
+    </select>
+
+    <select id="getByUuid" resultType="IsuIssue">
+        SELECT o.*
+        FROM "IsuIssue" o
+        WHERE o.uuid = #{uuid}
+    </select>
+
+    <select id="getByIds" resultType="Integer">
+        SELECT o.id FROM "IsuIssue" o
+        WHERE o.id IN
+        <foreach collection="ids" item="item" separator="," open="(" close=")">
+            #{item}
+        </foreach>
+    </select>
+
+    <insert id="save" useGeneratedKeys="true" keyProperty="id">
+        insert into "IsuIssue"
+        (
+        <foreach collection="elems" item="item" separator=",">
+            "${item.colCode}"
+        </foreach>
+        , "createTime", disabled, deleted
+        )
+        values
+        (
+        <foreach collection="params" item="item" separator=",">
+            <choose>
+                <when test="(item+'').indexOf('::JSON') != -1">
+                    ${item}
+                </when>
+                <otherwise>
+                    #{item}
+                </otherwise>
+            </choose>
+        </foreach>
+        , NOW(),FALSE, FALSE
+        );
+    </insert>
+
+    <update id="update">
+        UPDATE "IsuIssue"
+        SET
+        <foreach collection="elems" item="item" index="indx" separator=",">
+            "${item.colCode}" =
+            <choose>
+                <when test="(params[indx]+'').indexOf('::JSON') != -1">
+                    ${params[indx]}
+                </when>
+                <otherwise>
+                    #{params[${indx}]}
+                </otherwise>
+            </choose>
+        </foreach>
+        WHERE id=#{id} AND "projectId"=#{projectId}
+    </update>
+
+    <update id="updateProp">
+        UPDATE "IsuIssue"
+        SET "${code}"    = #{value},
+            "updateTime" = NOW()
+        WHERE id = #{id}
+          AND "projectId" = #{projectId}
+    </update>
+    <update id="updateExtProp">
+        UPDATE "IsuIssue"
+        SET "extProp"    = jsonb_set("extProp", '{${code}}', '${value}', true),
+            "updateTime" = NOW()
+        WHERE id = #{id}
+          AND "projectId" = #{projectId}
+    </update>
+
+    <delete id="delete">
+        UPDATE "IsuIssue"
+        SET deleted      = TRUE,
+            "updateTime" = NOW()
+        WHERE id = #{id}
+          AND "projectId" = #{projectId}
+    </delete>
+
+    <select id="getProjectDefaultPages" resultType="Map">
+        SELECT psi.opt, psi."pageId"
+        FROM "IsuPageSolutionItem" psi
+                 JOIN "IsuPageSolution" ps ON psi."solutionId" = ps.id
+                 JOIN "TstProject" prj ON prj."issuePageSolutionId" = ps.id
+
+        WHERE psi."typeId" = #{typeId}
+          AND prj.id = #{prjId}
+    </select>
+
+    <select id="getProjectDefaultType" resultType="IsuType">
+        SELECT t.*
+        FROM "IsuType" t
+                 JOIN "IsuTypeSolutionItem" tsi ON tsi."typeId" = t.id
+                 JOIN "IsuTypeSolution" ts ON tsi."solutionId" = ts.id
+                 JOIN "TstProject" prj ON prj."issueTypeSolutionId" = ts.id
+
+        WHERE t."defaultVal" IS TRUE
+          AND t."orgId" = #{orgId}
+          AND prj.id = #{prjId}
+    </select>
+
+    <select id="listAssigneeAndWatcherIds" resultType="Integer">
+        SELECT isu."assigneeId"
+        FROM "IsuIssue" isu
+        WHERE isu.id = #{id}
+
+        UNION
+
+        SELECT wat."userId"
+        FROM "IsuWatch" wat
+        WHERE wat."issueId" = #{id}
+    </select>
+
+
+    <resultMap id="issueMaps" type="com.ngtesting.platform.model.IsuIssue" autoMapping="true">
+        <id column="id" property="id"/>
+
+        <collection property="comments" select="com.ngtesting.platform.dao.IssueCommentsDao.listByIssueId"
+                    column="{id=id}">
+        </collection>
+
+        <collection property="attachments" select="com.ngtesting.platform.dao.IssueAttachmentDao.listByIssueId"
+                    column="{id=id}">
+        </collection>
+
+        <collection property="histories" select="com.ngtesting.platform.dao.IssueHistoryDao.listByIssueId"
+                    column="{id=id}">
+        </collection>
+
+        <collection property="tags" select="com.ngtesting.platform.dao.IssueTagDao.listByIssueId"
+                    column="{id=id}">
+        </collection>
+
+        <collection property="watchList" select="com.ngtesting.platform.dao.IssueWatchDao.listByIssueId"
+                    column="{id=id}">
+        </collection>
+
+        <collection property="links" select="com.ngtesting.platform.dao.IssueLinkDao.listByIssueId"
+                    column="{id=id}">
+        </collection>
+    </resultMap>
+
+    <resultMap id="issueData" type="com.ngtesting.platform.model.IsuIssue" autoMapping="true">
+        <id column="id" property="id"/>
+
+        <collection property="histories" select="com.ngtesting.platform.dao.IssueHistoryDao.listByIssueId"
+                    column="{id=id}">
+        </collection>
+
+        <collection property="tags" select="com.ngtesting.platform.dao.IssueTagDao.listByIssueId"
+                    column="{id=id}">
+        </collection>
+
+        <collection property="watchList" select="com.ngtesting.platform.dao.IssueWatchDao.listByIssueId"
+                    column="{id=id}">
+        </collection>
+
+        <collection property="links" select="com.ngtesting.platform.dao.IssueLinkDao.listByIssueId"
+                    column="{id=id}">
+        </collection>
+    </resultMap>
+
 </mapper>

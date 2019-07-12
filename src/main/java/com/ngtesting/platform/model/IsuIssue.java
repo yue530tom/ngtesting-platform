@@ -1,14 +1,18 @@
 package com.ngtesting.platform.model;
 
+import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONObject;
+
 import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 
 public class IsuIssue extends BaseModel {
 	private static final long serialVersionUID = 690125164201934534L;
 
     private String title;
-    private String discr;
+    private String descr;
 
     private Integer projectId;
     private String projectName;
@@ -31,8 +35,11 @@ public class IsuIssue extends BaseModel {
     private Integer resolutionId;
     private String resolutionName;
 
+    private String resolutionDescr;
+
     private Date dueTime;
     private Date resolveTime;
+    private Date setFinalTime;
 
     private Integer creatorId;
     private String creatorName;
@@ -41,33 +48,67 @@ public class IsuIssue extends BaseModel {
     private Integer assigneeId;
     private String assigneeName;
 
-    private String prop01;
-    private String prop02;
-    private String prop03;
-    private String prop04;
-    private String prop05;
+    private Boolean watched = false;
 
-    private String prop06;
-    private String prop07;
-    private String prop08;
-    private String prop09;
-    private String prop10;
+    private Integer orgId;
+    private Integer prjId;
 
-    private String prop11;
-    private String prop12;
-    private String prop13;
-    private String prop14;
-    private String prop15;
-
-    private String prop16;
-    private String prop17;
-    private String prop18;
-    private String prop19;
-    private String prop20;
+    private String extProp;
+    private String uuid;
 
     private List<IsuComments> comments = new LinkedList<>();
-	private List<IsuAttachment> attachments = new LinkedList<>();
+    private List<IsuAttachment> attachments = new LinkedList<>();
     private List<IsuHistory> histories = new LinkedList<>();
+    private List<IsuTag> tags = new LinkedList<>();
+    private List<Map> watchList = new LinkedList<>();
+    private List<IsuLink> links = new LinkedList<>();
+
+    public JSONObject getJsonProp() {
+        return JSON.parseObject(extProp);
+    }
+    public void setExtProp(String extProp) {
+        this.extProp = extProp;
+    }
+
+    public String getDescr() {
+        return descr;
+    }
+
+    public void setDescr(String descr) {
+        this.descr = descr;
+    }
+
+    public List<Map> getWatchList() {
+        return watchList;
+    }
+
+    public void setWatchList(List<Map> watchList) {
+        this.watchList = watchList;
+    }
+
+    public Date getSetFinalTime() {
+        return setFinalTime;
+    }
+
+    public void setSetFinalTime(Date setFinalTime) {
+        this.setFinalTime = setFinalTime;
+    }
+
+    public List<IsuLink> getLinks() {
+        return links;
+    }
+
+    public void setLinks(List<IsuLink> links) {
+        this.links = links;
+    }
+
+    public List<IsuTag> getTags() {
+        return tags;
+    }
+
+    public void setTags(List<IsuTag> tags) {
+        this.tags = tags;
+    }
 
     public String getTitle() {
         return title;
@@ -75,14 +116,6 @@ public class IsuIssue extends BaseModel {
 
     public void setTitle(String title) {
         this.title = title;
-    }
-
-    public String getDiscr() {
-        return discr;
-    }
-
-    public void setDiscr(String discr) {
-        this.discr = discr;
     }
 
     public Integer getProjectId() {
@@ -285,163 +318,43 @@ public class IsuIssue extends BaseModel {
         this.projectName = projectName;
     }
 
-    public String getProp01() {
-        return prop01;
+    public Integer getOrgId() {
+        return orgId;
     }
 
-    public void setProp01(String prop01) {
-        this.prop01 = prop01;
+    public void setOrgId(Integer orgId) {
+        this.orgId = orgId;
     }
 
-    public String getProp02() {
-        return prop02;
+    public Integer getPrjId() {
+        return prjId;
     }
 
-    public void setProp02(String prop02) {
-        this.prop02 = prop02;
+    public void setPrjId(Integer prjId) {
+        this.prjId = prjId;
     }
 
-    public String getProp03() {
-        return prop03;
+    public String getUuid() {
+        return uuid;
     }
 
-    public void setProp03(String prop03) {
-        this.prop03 = prop03;
+    public void setUuid(String uuid) {
+        this.uuid = uuid;
     }
 
-    public String getProp04() {
-        return prop04;
+    public String getResolutionDescr() {
+        return resolutionDescr;
     }
 
-    public void setProp04(String prop04) {
-        this.prop04 = prop04;
+    public void setResolutionDescr(String resolutionDescr) {
+        this.resolutionDescr = resolutionDescr;
     }
 
-    public String getProp05() {
-        return prop05;
+    public Boolean getWatched() {
+        return watched;
     }
 
-    public void setProp05(String prop05) {
-        this.prop05 = prop05;
-    }
-
-    public String getProp06() {
-        return prop06;
-    }
-
-    public void setProp06(String prop06) {
-        this.prop06 = prop06;
-    }
-
-    public String getProp07() {
-        return prop07;
-    }
-
-    public void setProp07(String prop07) {
-        this.prop07 = prop07;
-    }
-
-    public String getProp08() {
-        return prop08;
-    }
-
-    public void setProp08(String prop08) {
-        this.prop08 = prop08;
-    }
-
-    public String getProp09() {
-        return prop09;
-    }
-
-    public void setProp09(String prop09) {
-        this.prop09 = prop09;
-    }
-
-    public String getProp10() {
-        return prop10;
-    }
-
-    public void setProp10(String prop10) {
-        this.prop10 = prop10;
-    }
-
-    public String getProp11() {
-        return prop11;
-    }
-
-    public void setProp11(String prop11) {
-        this.prop11 = prop11;
-    }
-
-    public String getProp12() {
-        return prop12;
-    }
-
-    public void setProp12(String prop12) {
-        this.prop12 = prop12;
-    }
-
-    public String getProp13() {
-        return prop13;
-    }
-
-    public void setProp13(String prop13) {
-        this.prop13 = prop13;
-    }
-
-    public String getProp14() {
-        return prop14;
-    }
-
-    public void setProp14(String prop14) {
-        this.prop14 = prop14;
-    }
-
-    public String getProp15() {
-        return prop15;
-    }
-
-    public void setProp15(String prop15) {
-        this.prop15 = prop15;
-    }
-
-    public String getProp16() {
-        return prop16;
-    }
-
-    public void setProp16(String prop16) {
-        this.prop16 = prop16;
-    }
-
-    public String getProp17() {
-        return prop17;
-    }
-
-    public void setProp17(String prop17) {
-        this.prop17 = prop17;
-    }
-
-    public String getProp18() {
-        return prop18;
-    }
-
-    public void setProp18(String prop18) {
-        this.prop18 = prop18;
-    }
-
-    public String getProp19() {
-        return prop19;
-    }
-
-    public void setProp19(String prop19) {
-        this.prop19 = prop19;
-    }
-
-    public String getProp20() {
-        return prop20;
-    }
-
-    public void setProp20(String prop20) {
-        this.prop20 = prop20;
+    public void setWatched(Boolean watched) {
+        this.watched = watched;
     }
 }

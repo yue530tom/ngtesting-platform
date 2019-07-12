@@ -8,16 +8,19 @@ spring:
       static-locations: classpath:/META-INF/resources/,classpath:/resources/, classpath:/static/, classpath:/public/, file:${sys.work.dir}, file:${sys.work.my-mind-test}
     freemarker:
       template-loader-path: classpath:/mail-template/
+
+    jackson:
+      time-zone: GMT+8
     datasource:
-        name: mysql_ngtesting
+        name: db_ngtesting
         type: com.alibaba.druid.pool.DruidDataSource
         #druid相关配置
         druid:
           #监控统计拦截的filters
           filters: stat
-          driver-class-name: com.mysql.jdbc.Driver
+          driver-class-name: org.postgresql.Driver
           #基本属性
-          url: jdbc:mysql://${config.mysql.host}:${config.mysql.port}/ngtesting-web?useUnicode=true&characterEncoding=UTF-8&allowMultiQueries=true
+          url: jdbc:postgresql://${config.db.host}:${config.db.port}/ngtesting-web?useUnicode=true&characterEncoding=UTF-8&allowMultiQueries=true&noAccessToProcedureBodies=true
           username: ngtesting
           password: P2ssw0rd
           #配置初始化大小/最小/最大
@@ -35,16 +38,41 @@ spring:
           test-on-borrow: false
           test-on-return: false
           #打开PSCache，并指定每个连接上PSCache的大小。oracle设为true，mysql设为false。分库分表较多推荐设置为false
-          pool-prepared-statements: false
+          pool-prepared-statements: true
           max-pool-prepared-statement-per-connection-size: 20
+
+    redis:
+      host: 127.0.0.1
+      port: 6379
+      password: P2ssw0rd
+      timeout: 0
+      jedis:
+        pool:
+          max-active: 8
+          max-idle: 8
+          min-idle: 0
+          max-wait: -1ms
+
+    servlet:
+      multipart:
+        max-file-size: 150MB
+        max-request-size: 150MB
+
+server:
+ port: 80
+
+http:
+  port: 80
 
 mybatis:
   mapperLocations: classpath:mapper/*.xml
   typeAliasesPackage: com.ngtesting.platform.model
   typeHandlersPackage: com.ngtesting.platform.typehandler
+  configuration:
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
 
 pagehelper:
-    helperDialect: mysql
+    helperDialect: postgresql
     reasonable: true
     supportMethodsArguments: true
     params: count=countSql
@@ -71,34 +99,44 @@ sys:
     login: http://{0}#/login
     resetPassword: http://{0}#/reset-password
 
+logging:
+  config: classpath:logback-spring.xml
+
 ---
 spring:
   profiles: dev
 config:
-  mysql:
+  db:
     host: localhost
-    port: 3306
+    port: 5432
 
 ---
 spring:
-  profiles: prod
+  profiles: docker-domain
+server:
+  port: 443
+  ssl:
+    key-store: classpath:keystore.p12
+    key-store-password: P2ssw0rd
+    key-store-type: PKCS12
+    key-alias: ngtesting-mac
 config:
-  mysql:
-    host: localhost
-    port: 3306
+  db:
+    host: ngtesting-postgres
+    port: 5432
 
 ---
 spring:
-  profiles: docker
+  profiles: docker-ip
 config:
-  mysql:
-    host: ngtesting-mysql
-    port: 3306
+  db:
+    host: ngtesting-postgres
+    port: 5432
 
 ---
 spring:
-  profiles: aliyun-db
+  profiles: aliyun-db-test
 config:
-  mysql:
+  db:
     host: 47.99.102.138
-    port: 3306
+    port: 5432

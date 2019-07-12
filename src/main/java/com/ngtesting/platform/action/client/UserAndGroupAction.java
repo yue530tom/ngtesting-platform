@@ -1,19 +1,16 @@
 package com.ngtesting.platform.action.client;
 
-import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.ngtesting.platform.action.BaseAction;
 import com.ngtesting.platform.config.Constant;
 import com.ngtesting.platform.config.Constant.RespCode;
 import com.ngtesting.platform.model.TstUser;
-import com.ngtesting.platform.service.OrgGroupService;
-import com.ngtesting.platform.service.UserService;
+import com.ngtesting.platform.service.intf.OrgGroupService;
+import com.ngtesting.platform.service.intf.UserService;
+import com.ngtesting.platform.servlet.PrivOrg;
+import org.apache.shiro.SecurityUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
 import java.util.ArrayList;
@@ -22,7 +19,7 @@ import java.util.List;
 import java.util.Map;
 
 
-@Controller
+@RestController
 @RequestMapping(Constant.API_PATH_CLIENT + "userAndGroup/")
 public class UserAndGroupAction extends BaseAction {
 	@Autowired
@@ -30,29 +27,19 @@ public class UserAndGroupAction extends BaseAction {
 	@Autowired
     OrgGroupService orgGroupService;
 
-	@PostMapping(value = "search")
-	@ResponseBody
-	public Map<String, Object> search(HttpServletRequest request, @RequestBody JSONObject json) {
+	@PostMapping(value = "searchInOrg")
+	@PrivOrg(perms = {"belongs_to:org"}) // 维护用户成员时访问
+	public Map<String, Object> searchInOrg(HttpServletRequest request, @RequestBody JSONObject json) {
 		Map<String, Object> ret = new HashMap<String, Object>();
-		TstUser user = (TstUser) request.getSession().getAttribute(Constant.HTTP_SESSION_USER_PROFILE);
+		TstUser user = (TstUser) SecurityUtils.getSubject().getPrincipal();
 		Integer orgId = user.getDefaultOrgId();
 
 		String keywords = json.getString("keywords");
-        JSONArray exceptIds = json.getJSONArray("exceptIds");
+        List<Integer> exceptUserIds = json.getObject("exceptUserIds", List.class);
+		List<Integer> exceptGroupIds = json.getObject("exceptGroupIds", List.class);
 
-		String ids = "";
-		if (exceptIds != null && exceptIds.size() > 0) {
-			int i = 0;
-			for (Object item : exceptIds.toArray()) {
-				if (i++ > 0) {
-					ids += ",";
-				}
-				ids += item.toString();
-			}
-		}
-
-		List users = userService.search(orgId, keywords, ids);
-		List groups = orgGroupService.search(orgId, keywords, ids);
+		List users = userService.searchOrgUser(orgId, keywords, exceptUserIds);
+		List groups = orgGroupService.search(orgId, keywords, exceptGroupIds);
 
 		List<Object> vos = new ArrayList<>();
 		vos.addAll(users);

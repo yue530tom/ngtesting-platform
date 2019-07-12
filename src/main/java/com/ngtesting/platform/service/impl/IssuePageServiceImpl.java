@@ -2,10 +2,8 @@ package com.ngtesting.platform.service.impl;
 
 import com.ngtesting.platform.dao.IssuePageDao;
 import com.ngtesting.platform.model.IsuPage;
-import com.ngtesting.platform.model.IsuPageElement;
-import com.ngtesting.platform.model.IsuPageTab;
-import com.ngtesting.platform.service.IssuePageService;
-import com.ngtesting.platform.service.UserService;
+import com.ngtesting.platform.service.intf.IssuePageService;
+import com.ngtesting.platform.service.intf.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -21,8 +19,13 @@ public class IssuePageServiceImpl extends BaseServiceImpl implements IssuePageSe
     IssuePageDao pageDao;
 
     @Override
-    public List<IsuPage> list(Integer orgId) {
-        return pageDao.list(orgId);
+    public List<IsuPage> listAll(Integer orgId) {
+        return pageDao.listAll(orgId);
+    }
+
+    @Override
+    public List<IsuPage> listForWorkflowTran(Integer orgId) {
+        return pageDao.listForWorkflowTran(orgId);
     }
 
     @Override
@@ -33,12 +36,10 @@ public class IssuePageServiceImpl extends BaseServiceImpl implements IssuePageSe
     @Override
     @Transactional
     public IsuPage save(IsuPage vo, Integer orgId) {
+        vo.setOrgId(orgId);
+
         if (vo.getId() == null) {
-
-            vo.setOrgId(orgId);
             pageDao.save(vo);
-
-            pageDao.saveDefaultTab(vo.getId(), orgId);
         } else {
             Integer count = pageDao.update(vo);
             if (count == 0) {
@@ -52,11 +53,17 @@ public class IssuePageServiceImpl extends BaseServiceImpl implements IssuePageSe
     @Override
     public boolean delete(Integer id, Integer orgId) {
         Integer count = pageDao.delete(id, orgId);
-        if (count == 0) {
-            return false;
-        }
 
-        return true;
+        return count > 0;
+    }
+
+    @Override
+    @Transactional
+    public Boolean setDefault(Integer id, Integer orgId) {
+        pageDao.removeDefault(orgId);
+
+        Integer count = pageDao.setDefault(id, orgId);
+        return count > 0;
     }
 
 }

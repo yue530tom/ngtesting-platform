@@ -4,21 +4,36 @@ public class IsuStatus extends BaseModel {
 
 	private static final long serialVersionUID = 1657004478821957505L;
 	private String label;
-	private String value;
+	// private String value;
     private String descr;
     private Integer ordr;
 
-    private Boolean isDefault = false;
-    private Boolean isFinal;
-    private Boolean isBuildIn = false;
+    private Boolean defaultVal = false;
+    private Boolean finalVal;
+    private Boolean buildIn = false;
+
+	private Integer categoryId;
+	private String categoryName;
     private Integer orgId;
 
-    public Boolean getDefault() {
-        return isDefault;
+    private Boolean selected;
+
+    @Override
+    public boolean equals(Object obj) {
+        IsuStatus s = (IsuStatus)obj;
+        if (this.getId() == null || s.getId() == null) {
+            return false;
+        }
+
+        return this.getId().intValue() == s.getId().intValue();
     }
 
-    public void setDefault(Boolean aDefault) {
-        isDefault = aDefault;
+    public Boolean getDefaultVal() {
+        return defaultVal;
+    }
+
+    public void setDefaultVal(Boolean aDefault) {
+        defaultVal = aDefault;
     }
 
     public String getLabel() {
@@ -29,28 +44,20 @@ public class IsuStatus extends BaseModel {
 		this.label = label;
 	}
 
-    public String getValue() {
-        return value;
+    public Boolean getFinalVal() {
+        return finalVal;
     }
 
-    public void setValue(String value) {
-        this.value = value;
+    public void setFinalVal(Boolean finalVal) {
+        this.finalVal = finalVal;
     }
 
-    public Boolean getFinal() {
-		return isFinal;
-	}
-
-	public void setFinal(Boolean aFinal) {
-		isFinal = aFinal;
-	}
-
-	public Boolean getBuildIn() {
-		return isBuildIn;
+    public Boolean getBuildIn() {
+		return buildIn;
 	}
 
 	public void setBuildIn(Boolean buildIn) {
-		isBuildIn = buildIn;
+    this.buildIn = buildIn;
 	}
 
 	public String getDescr() {
@@ -68,23 +75,35 @@ public class IsuStatus extends BaseModel {
 		this.ordr = ordr;
 	}
 
-	public Boolean getIsFinal() {
-		return isFinal;
-	}
-	public void setIsFinal(Boolean isFinal) {
-		this.isFinal = isFinal;
-	}
-	public Boolean getIsBuildIn() {
-		return isBuildIn;
-	}
-	public void setIsBuildIn(Boolean isBuildIn) {
-		this.isBuildIn = isBuildIn;
-	}
 	public Integer getOrgId() {
 		return orgId;
 	}
 	public void setOrgId(Integer orgId) {
 		this.orgId = orgId;
 	}
+
+    public Integer getCategoryId() {
+        return categoryId;
+    }
+
+    public void setCategoryId(Integer categoryId) {
+        this.categoryId = categoryId;
+    }
+
+    public String getCategoryName() {
+        return categoryName;
+    }
+
+    public void setCategoryName(String categoryName) {
+        this.categoryName = categoryName;
+    }
+
+    public Boolean getSelected() {
+        return selected;
+    }
+
+    public void setSelected(Boolean selected) {
+        this.selected = selected;
+    }
 
 }

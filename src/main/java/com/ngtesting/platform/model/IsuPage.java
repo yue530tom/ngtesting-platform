@@ -7,10 +7,11 @@ public class IsuPage extends BaseModel {
     private static final long serialVersionUID = 8715160448820762150L;
 
     private String name;
-
     private Integer orgId;
+    private Boolean defaultVal = false;
+    private Boolean buildIn = false;
 
-    List<IsuPageTab> tabs = new LinkedList();
+    List<IsuPageElement> elements = new LinkedList();
 
     public String getName() {
         return name;
@@ -28,11 +29,27 @@ public class IsuPage extends BaseModel {
         this.orgId = orgId;
     }
 
-    public List<IsuPageTab> getTabs() {
-        return tabs;
+    public List<IsuPageElement> getElements() {
+        return elements;
     }
 
-    public void setTabs(List<IsuPageTab> tabs) {
-        this.tabs = tabs;
+    public void setElements(List<IsuPageElement> elements) {
+        this.elements = elements;
+    }
+
+    public Boolean getDefaultVal() {
+        return defaultVal;
+    }
+
+    public void setDefaultVal(Boolean aDefault) {
+        defaultVal = aDefault;
+    }
+
+    public Boolean getBuildIn() {
+        return buildIn;
+    }
+
+    public void setBuildIn(Boolean buildIn) {
+      this.buildIn = buildIn;
     }
 }

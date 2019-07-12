@@ -4,15 +4,17 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.ngtesting.platform.action.BaseAction;
 import com.ngtesting.platform.config.Constant;
-import com.ngtesting.platform.model.IsuCustomField;
+import com.ngtesting.platform.model.IsuPage;
+import com.ngtesting.platform.model.IsuPageSolution;
 import com.ngtesting.platform.model.TstUser;
-import com.ngtesting.platform.service.IssueCustomFieldService;
+import com.ngtesting.platform.service.intf.IssuePageService;
+import com.ngtesting.platform.service.intf.IssuePageSolutionService;
+import org.apache.shiro.SecurityUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.RestController;
 
 import javax.servlet.http.HttpServletRequest;
 import java.util.HashMap;
@@ -20,111 +22,153 @@ import java.util.List;
 import java.util.Map;
 
 
-@Controller
-@RequestMapping(Constant.API_PATH_ADMIN + "issue_solution/")
+@RestController
+@RequestMapping(Constant.API_PATH_ADMIN + "issue_page_solution/")
 public class IssuePageSolutionAdmin extends BaseAction {
+    @Autowired
+    IssuePageService pageService;
 	@Autowired
-    IssueCustomFieldService customFieldService;
+    IssuePageSolutionService pageSolutionService;
 
 	@RequestMapping(value = "load", method = RequestMethod.POST)
-	@ResponseBody
+
 	public Map<String, Object> load(HttpServletRequest request, @RequestBody JSONObject json) {
 		Map<String, Object> ret = new HashMap<String, Object>();
 
-		TstUser userVo = (TstUser) request.getSession().getAttribute(Constant.HTTP_SESSION_USER_PROFILE);
-		Integer orgId = userVo.getDefaultOrgId();
+		TstUser user = (TstUser) SecurityUtils.getSubject().getPrincipal();
+		Integer orgId = user.getDefaultOrgId();
 
-		List<IsuCustomField> vos = customFieldService.list(orgId);
+		List<IsuPageSolution> vos = pageSolutionService.list(orgId);
 
 		ret.put("code", Constant.RespCode.SUCCESS.getCode());
-		ret.put("data", vos);
+		ret.put("solutions", vos);
 		return ret;
 	}
 
 	@RequestMapping(value = "get", method = RequestMethod.POST)
-	@ResponseBody
+
 	public Map<String, Object> get(HttpServletRequest request, @RequestBody JSONObject json) {
 		Map<String, Object> ret = new HashMap<String, Object>();
 
-		TstUser userVo = (TstUser) request.getSession().getAttribute(Constant.HTTP_SESSION_USER_PROFILE);
-		Integer orgId = userVo.getDefaultOrgId();
+		TstUser user = (TstUser) SecurityUtils.getSubject().getPrincipal();
+		Integer orgId = user.getDefaultOrgId();
 
-		Integer customFieldId = json.getInteger("id");
-
-		IsuCustomField vo = null;
-		if (customFieldId == null) {
-			vo = new IsuCustomField();
+		Integer solutionId = json.getInteger("id");
+		IsuPageSolution solution = null;
+		if (solutionId == null) {
+			solution = new IsuPageSolution();
 		} else {
-			vo = customFieldService.get(customFieldId, orgId);
+			solution = pageSolutionService.get(solutionId, orgId);
 		}
 
-		if (vo.getMyColumn() == null) {
-            ret.put("code", Constant.RespCode.BIZ_FAIL.getCode());
-            ret.put("msg", "自定义字段不能超过20个");
-        }
+		ret.put("solution", solution);
+		ret.put("code", Constant.RespCode.SUCCESS.getCode());
+		return ret;
+	}
 
-		List<String> typeList = customFieldService.listType();
-		List<String> formatList = customFieldService.listFormat();
+	@RequestMapping(value = "getConfig", method = RequestMethod.POST)
 
-        ret.put("data", vo);
-        ret.put("typeList", typeList);
-        ret.put("formatList", formatList);
+	public Map<String, Object> getConfig(HttpServletRequest request, @RequestBody JSONObject json) {
+		Map<String, Object> ret = new HashMap<String, Object>();
 
+		TstUser user = (TstUser) SecurityUtils.getSubject().getPrincipal();
+		Integer orgId = user.getDefaultOrgId();
+
+		Integer solutionId = json.getInteger("id");
+
+        IsuPageSolution solution = pageSolutionService.get(solutionId, orgId);
+        Map itemMap = pageSolutionService.getItemsMap(solutionId, orgId);
+
+        List<IsuPage> pages = pageService.listAll(orgId);
+
+		ret.put("solution", solution);
+        ret.put("itemMap", itemMap);
+        ret.put("pages", pages);
 		ret.put("code", Constant.RespCode.SUCCESS.getCode());
 		return ret;
 	}
 
 	@RequestMapping(value = "save", method = RequestMethod.POST)
-	@ResponseBody
+
 	public Map<String, Object> save(HttpServletRequest request, @RequestBody JSONObject json) {
 		Map<String, Object> ret = new HashMap<String, Object>();
 
-		TstUser userVo = (TstUser) request.getSession().getAttribute(Constant.HTTP_SESSION_USER_PROFILE);
-		Integer orgId = userVo.getDefaultOrgId();
+		TstUser user = (TstUser) SecurityUtils.getSubject().getPrincipal();
+		Integer orgId = user.getDefaultOrgId();
 
-		IsuCustomField customField = JSON.parseObject(JSON.toJSONString(json.get("model")), IsuCustomField.class);
-//		List<TestProjectVo> projects = (List<TestProjectVo>) json.getDetail("relations");
-//
-//		IsuCustomField po = customFieldService.save(customField, orgId);
-//		boolean success = customFieldService.saveRelationsByField(po.getCode(), projects);
+		IsuPageSolution vo = JSON.parseObject(JSON.toJSONString(json), IsuPageSolution.class);
+		pageSolutionService.save(vo, orgId);
+
+		ret.put("solution", vo);
 
 		ret.put("code", Constant.RespCode.SUCCESS.getCode());
 		return ret;
 	}
 
 	@RequestMapping(value = "delete", method = RequestMethod.POST)
-	@ResponseBody
+
 	public Map<String, Object> delete(HttpServletRequest request, @RequestBody JSONObject json) {
 		Map<String, Object> ret = new HashMap<String, Object>();
 
-		TstUser userVo = (TstUser) request.getSession().getAttribute(Constant.HTTP_SESSION_USER_PROFILE);
-		Integer orgId = userVo.getDefaultOrgId();
+		TstUser user = (TstUser) SecurityUtils.getSubject().getPrincipal();
+		Integer orgId = user.getDefaultOrgId();
 
 		Integer id = json.getInteger("id");
 
-		boolean success = customFieldService.delete(id, orgId);
+		boolean success = pageSolutionService.delete(id, orgId);
 
 		ret.put("code", Constant.RespCode.SUCCESS.getCode());
 		return ret;
 	}
 
-	@RequestMapping(value = "changeOrder", method = RequestMethod.POST)
-	@ResponseBody
-	public Map<String, Object> changeOrder(HttpServletRequest request, @RequestBody JSONObject json) {
+	@RequestMapping(value = "setDefault", method = RequestMethod.POST)
+
+	public Map<String, Object> setDefault(HttpServletRequest request, @RequestBody JSONObject json) {
 		Map<String, Object> ret = new HashMap<String, Object>();
 
-		TstUser userVo = (TstUser) request.getSession().getAttribute(Constant.HTTP_SESSION_USER_PROFILE);
-		Integer orgId = userVo.getDefaultOrgId();
+		TstUser user = (TstUser) SecurityUtils.getSubject().getPrincipal();
+		Integer orgId = user.getDefaultOrgId();
+
 		Integer id = json.getInteger("id");
-		String act = json.getString("act");
 
-		boolean success = customFieldService.changeOrderPers(id, act, orgId);
+		Boolean result = pageSolutionService.setDefault(id, orgId);
+		if (!result) { // 当对象不是默认org的，结果会返回false
+			return authorFail();
+		}
 
-		List<IsuCustomField> vos = customFieldService.list(orgId);
+		List<IsuPageSolution> vos = pageSolutionService.list(orgId);
 
-        ret.put("data", vos);
 		ret.put("code", Constant.RespCode.SUCCESS.getCode());
+		ret.put("solutions", vos);
 
+		return ret;
+	}
+
+	@RequestMapping(value = "changeItem", method = RequestMethod.POST)
+
+	public Map<String, Object> changeItem(HttpServletRequest request, @RequestBody JSONObject json) {
+		Map<String, Object> ret = new HashMap<String, Object>();
+
+		TstUser user = (TstUser) SecurityUtils.getSubject().getPrincipal();
+		Integer orgId = user.getDefaultOrgId();
+
+		Integer solutionId = json.getInteger("solutionId");
+		Integer typeId = json.getInteger("type");
+		String opt = json.getString("opt");
+		Integer pageId = json.getInteger("page");
+
+		boolean success = pageSolutionService.changeItem(typeId, opt, pageId, solutionId, orgId);
+
+		IsuPageSolution solution = pageSolutionService.get(solutionId, orgId);
+		Map itemMap = pageSolutionService.getItemsMap(solutionId, orgId);
+
+		List<IsuPage> pages = pageService.listAll(orgId);
+
+		ret.put("solution", solution);
+		ret.put("itemMap", itemMap);
+		ret.put("pages", pages);
+
+		ret.put("code", Constant.RespCode.SUCCESS.getCode());
 		return ret;
 	}
 

@@ -1,7 +1,7 @@
 package com.ngtesting.platform.service.impl;
 
 import com.ngtesting.platform.model.SysRole;
-import com.ngtesting.platform.service.SysRoleService;
+import com.ngtesting.platform.service.intf.SysRoleService;
 import com.ngtesting.platform.vo.Page;
 import org.springframework.stereotype.Service;
 
@@ -11,15 +11,15 @@ public class SysRoleServiceImpl extends BaseServiceImpl implements SysRoleServic
 	@Override
 	public Page listByPage(Integer orgId, String keywords, Boolean disabled, Integer currentPage, Integer itemsPerPage) {
 //        DetachedCriteria dc = DetachedCriteria.forClass(SysRole.class);
-//        dc.add(Restrictions.eq("orgId", orgId));
+//        dc.save(Restrictions.eq("orgId", orgId));
 //
-//        dc.add(Restrictions.eq("deleted", Boolean.FALSE));
+//        dc.save(Restrictions.eq("deleted", Boolean.FALSE));
 //
 //        if (StringUtil.isNotEmpty(keywords)) {
-//        	dc.add(Restrictions.like("name", "%" + keywords + "%"));
+//        	dc.save(Restrictions.like("name", "%" + keywords + "%"));
 //        }
 //        if (StringUtil.isNotEmpty(disabled)) {
-//        	dc.add(Restrictions.eq("disabled", Boolean.valueOf(disabled)));
+//        	dc.save(Restrictions.eq("disabled", Boolean.valueOf(disabled)));
 //        }
 //
 //        dc.addOrder(Order.asc("id"));

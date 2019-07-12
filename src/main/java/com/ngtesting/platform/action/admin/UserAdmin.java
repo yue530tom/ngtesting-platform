@@ -8,11 +8,13 @@ import com.ngtesting.platform.action.BaseAction;
 import com.ngtesting.platform.config.Constant;
 import com.ngtesting.platform.model.TstOrgGroupUserRelation;
 import com.ngtesting.platform.model.TstUser;
-import com.ngtesting.platform.service.OrgGroupUserRelationService;
-import com.ngtesting.platform.service.PushSettingsService;
-import com.ngtesting.platform.service.UserService;
+import com.ngtesting.platform.service.intf.OrgGroupUserRelationService;
+import com.ngtesting.platform.service.intf.PushSettingsService;
+import com.ngtesting.platform.service.intf.UserService;
+import org.apache.shiro.SecurityUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
@@ -20,9 +22,11 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-@Controller
+@RestController
 @RequestMapping(value = Constant.API_PATH_ADMIN + "user")
 public class UserAdmin extends BaseAction {
+    private Logger logger = LoggerFactory.getLogger(getClass());
+
     @Autowired
     private UserService userService;
 
@@ -33,11 +37,10 @@ public class UserAdmin extends BaseAction {
     PushSettingsService pushSettingsService;
 
     @PostMapping(value = "list")
-    @ResponseBody
     public Map<String, Object> list(HttpServletRequest request, @RequestBody JSONObject json) {
         Map<String, Object> ret = new HashMap<String, Object>();
 
-        TstUser user = (TstUser) request.getSession().getAttribute(Constant.HTTP_SESSION_USER_PROFILE);
+        TstUser user = (TstUser) SecurityUtils.getSubject().getPrincipal();
         Integer orgId = user.getDefaultOrgId();
 
         String keywords = json.getString("keywords");
@@ -55,11 +58,10 @@ public class UserAdmin extends BaseAction {
     }
 
     @RequestMapping(value = "get", method = RequestMethod.POST)
-    @ResponseBody
     public Map<String, Object> get(HttpServletRequest request, @RequestBody JSONObject json) {
         Map<String, Object> ret = new HashMap<String, Object>();
 
-        TstUser user = (TstUser) request.getSession().getAttribute(Constant.HTTP_SESSION_USER_PROFILE);
+        TstUser user = (TstUser) SecurityUtils.getSubject().getPrincipal();
         Integer orgId = user.getDefaultOrgId();
         Integer userId = json.getInteger("id");
 
@@ -72,10 +74,6 @@ public class UserAdmin extends BaseAction {
             return ret;
         }
 
-        if (userNotInOrg(userId, orgId)) { // 用户不属于当前组织
-            return authFail();
-        }
-
         TstUser po = userService.get(userId);
 
         ret.put("user", po);
@@ -85,11 +83,10 @@ public class UserAdmin extends BaseAction {
     }
 
     @RequestMapping(value = "invite")
-    @ResponseBody
     public Map<String, Object> invite(HttpServletRequest request, @RequestBody JSONObject json) {
         Map<String, Object> ret = new HashMap<String, Object>();
 
-        TstUser user = (TstUser) request.getSession().getAttribute(Constant.HTTP_SESSION_USER_PROFILE);
+        TstUser user = (TstUser) SecurityUtils.getSubject().getPrincipal();
 
         TstUser vo = JSON.parseObject(JSON.toJSONString(json.get("user")), TstUser.class);
         List<TstOrgGroupUserRelation> relations = (List<TstOrgGroupUserRelation>) json.get("relations");
@@ -107,18 +104,13 @@ public class UserAdmin extends BaseAction {
 
     // 管理员修改用户信息
     @PostMapping(value = "update")
-    @ResponseBody
     public Map<String, Object> update(HttpServletRequest request, @RequestBody JSONObject json) {
         Map<String, Object> ret = new HashMap<String, Object>();
 
-        TstUser user = (TstUser) request.getSession().getAttribute(Constant.HTTP_SESSION_USER_PROFILE);
+        TstUser user = (TstUser) SecurityUtils.getSubject().getPrincipal();
         Integer orgId = user.getDefaultOrgId();
 
         TstUser vo = JSON.parseObject(JSON.toJSONString(json.get("user")), TstUser.class);
-
-        if (userNotInOrg(vo.getId(), orgId)) { // 用户不属于当前组织
-            return authFail();
-        }
 
         TstUser existUser = userService.getByEmail(vo.getEmail());
         if (existUser != null && existUser.getId() != vo.getId()) {
@@ -133,22 +125,17 @@ public class UserAdmin extends BaseAction {
         orgGroupUserRelationService.saveRelationsForUser(orgId, vo.getId(), relations);
         ret.put("code", Constant.RespCode.SUCCESS.getCode());
 
-        pushSettingsService.pushUserSettings(po);
+//        pushSettingsService.pushUserSettings(po);
         return ret;
     }
 
     @PostMapping(value = "removeFromOrg")
-    @ResponseBody
     public Map<String, Object> removeFromOrg(HttpServletRequest request, @RequestBody JSONObject json) {
         Map<String, Object> ret = new HashMap<String, Object>();
-        TstUser user = (TstUser) request.getSession().getAttribute(Constant.HTTP_SESSION_USER_PROFILE);
+        TstUser user = (TstUser) SecurityUtils.getSubject().getPrincipal();
+        Integer orgId = user.getDefaultOrgId();
 
         Integer userId = json.getInteger("userId");
-        Integer orgId = json.getInteger("orgId");
-
-        if (userNotInOrg(userId, orgId)) { // 用户不属于当前组织
-            return authFail();
-        }
 
         Boolean result = userService.removeFromOrg(userId, orgId);
 

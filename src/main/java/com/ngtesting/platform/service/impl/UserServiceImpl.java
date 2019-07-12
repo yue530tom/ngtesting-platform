@@ -1,11 +1,11 @@
 package com.ngtesting.platform.service.impl;
 
 import com.alibaba.fastjson.JSONObject;
-import com.github.pagehelper.PageHelper;
 import com.ngtesting.platform.config.Constant;
 import com.ngtesting.platform.dao.*;
-import com.ngtesting.platform.model.*;
-import com.ngtesting.platform.service.*;
+import com.ngtesting.platform.model.TstOrgGroupUserRelation;
+import com.ngtesting.platform.model.TstUser;
+import com.ngtesting.platform.service.intf.*;
 import com.ngtesting.platform.utils.PasswordEncoder;
 import com.ngtesting.platform.utils.StringUtil;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -63,7 +63,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public List<TstUser> getProjectUsers(Integer orgId, Integer projectId) {
+    public List<TstUser> getProjectUsers(Integer projectId) {
         List<TstUser> ls = userDao.getProjectUsers(projectId, null);
 
         return ls;
@@ -125,8 +125,8 @@ public class UserServiceImpl implements UserService {
             String salt = PasswordEncoder.genSalt();
             PasswordEncoder passwordEncoder = new  PasswordEncoder(salt);
 
-            user.setTemp(salt);
-            user.setPassword(passwordEncoder.encodePassword(StringUtil.RandomString(6)));
+            vo.setTemp(salt);
+            vo.setPassword(passwordEncoder.encodePassword(StringUtil.RandomString(6)));
 
             userDao.save(vo);
 
@@ -135,11 +135,12 @@ public class UserServiceImpl implements UserService {
 
         if (isNew || orgUserRelationDao.userInOrg(vo.getId(), orgId) == 0) { // 不在组织里
             orgUserRelationDao.addUserToOrg(vo.getId(), orgId);
+            orgUserRelationDao.addUserToDefaultOrgGroup(vo.getId(), orgId);
 
             Integer projectRoleId = projectRoleDao.getRoleByCode(orgId, "test_designer").getId();
             projectRoleEntityRelationDao.addRole(orgId, prjId, projectRoleId, vo.getId(), "user");
 
-            projectService.changeDefaultPrj(vo, prjId);
+            projectService.changeDefaultPrj(vo, prjId, false);
 
             orgGroupUserRelationService.saveRelationsForUser(orgId, vo.getId(), relations);
 
@@ -197,9 +198,15 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public List<TstUser> search(Integer orgId, String keywords, String exceptIds) {
-        PageHelper.startPage(0, 20);
-        List<TstUser> users = userDao.search(orgId, keywords, exceptIds);
+    public List<TstUser> searchOrgUser(Integer orgId, String keywords,  List<Integer> exceptIds) {
+        List<TstUser> users = userDao.searchOrgUser(orgId, keywords, exceptIds);
+
+        return users;
+    }
+
+    @Override
+    public List<TstUser> searchProjectUser(Integer projectId, String keywords, List<Integer> exceptIds) {
+        List<TstUser> users = userDao.searchProjectUser(projectId, keywords, exceptIds);
 
         return users;
     }
@@ -212,7 +219,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public TstUser setLeftSizePers(TstUser user, Integer left, String prop) {
+    public TstUser setLeftSize(TstUser user, Integer left, String prop) {
         if ("design".equals(prop)) {
             user.setLeftSizeDesign(left);
         } else if ("exe".equals(prop)) {
@@ -235,6 +242,28 @@ public class UserServiceImpl implements UserService {
     public void saveIssueFields(String fieldStr, TstUser user) {
         user.setIssueFileds(fieldStr);
         userDao.saveIssueFields(fieldStr, user.getId());
+    }
+
+    @Override
+    public void updateUserInfoToPrincipal(TstUser user, TstUser principal) {
+        principal.setEmail(user.getEmail());
+        principal.setNickname(user.getNickname());
+        principal.setPhone(user.getPhone());
+        principal.setAvatar(user.getAvatar());
+
+        principal.setLeftSizeDesign(user.getLeftSizeDesign());
+        principal.setLeftSizeExe(user.getLeftSizeExe());
+        principal.setLeftSizeIssue(user.getLeftSizeIssue());
+
+        principal.setIssueView(user.getIssueView());
+        principal.setIssueColumns(user.getIssueColumns());
+        principal.setIssueFileds(user.getIssueFileds());
+
+        principal.setDefaultOrgId(user.getDefaultOrgId());
+        principal.setDefaultOrgName(user.getDefaultOrgName());
+        principal.setDefaultPrjId(user.getDefaultPrjId());
+        principal.setDefaultPrjName(user.getDefaultPrjName());
+        principal.setLocked(user.getLocked());
     }
 
 }

@@ -4,10 +4,11 @@ public class IsuType extends BaseModel {
 	private static final long serialVersionUID = -2904250132388811594L;
 
     private String label;
-    private String value;
+    /*private String value;*/
 
     private String descr;
-    private Boolean isDefault = false;
+    private Boolean defaultVal = false;
+    private Boolean buildIn = false;
     private Integer ordr;
     private Integer orgId;
 
@@ -17,14 +18,6 @@ public class IsuType extends BaseModel {
 
     public void setLabel(String label) {
         this.label = label;
-    }
-
-    public String getValue() {
-        return value;
-    }
-
-    public void setValue(String value) {
-        this.value = value;
     }
 
     public Integer getOrgId() {
@@ -48,12 +41,19 @@ public class IsuType extends BaseModel {
         this.ordr = ordr;
     }
 
-    public Boolean getIsDefault() {
-        return this.isDefault;
+    public Boolean getDefaultVal() {
+        return defaultVal;
     }
 
-    public void setIsDefault(Boolean isDefault) {
-        this.isDefault = isDefault;
+    public void setDefaultVal(Boolean aDefault) {
+        defaultVal = aDefault;
     }
 
+    public Boolean getBuildIn() {
+        return buildIn;
+    }
+
+    public void setBuildIn(Boolean buildIn) {
+      this.buildIn = buildIn;
+    }
 }

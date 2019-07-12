@@ -1,7 +1,12 @@
 package com.ngtesting.platform.model;
 
-import java.util.Date;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
+import java.util.Date;
+import java.util.HashSet;
+import java.util.Set;
+
+@JsonIgnoreProperties(value={"salt", "password"})
 public class TstUser extends BaseModel {
     private static final long serialVersionUID = 8137369995938797198L;
 
@@ -30,7 +35,42 @@ public class TstUser extends BaseModel {
     private Boolean selected;
     private Boolean selecting;
 
+    private Boolean locked = Boolean.FALSE;
+
     private String type = "user";
+
+    private String authCacheKey;
+    private transient String salt;
+    private Set<String> roles = new HashSet<>();
+    private Set<String> perms = new HashSet<>();
+
+    public String getAuthCacheKey() {
+        return id.toString();
+    }
+
+    public String getSalt() {
+        return salt;
+    }
+
+    public void setSalt(String salt) {
+        this.salt = salt;
+    }
+
+    public Set<String> getRoles() {
+        return roles;
+    }
+
+    public void setRoles(Set<String> roles) {
+        this.roles = roles;
+    }
+
+    public Set<String> getPerms() {
+        return perms;
+    }
+
+    public void setPerms(Set<String> perms) {
+        this.perms = perms;
+    }
 
     public Integer getLeftSizeIssue() {
         return leftSizeIssue;
@@ -198,5 +238,13 @@ public class TstUser extends BaseModel {
 
     public void setIssueFileds(String issueFileds) {
         this.issueFileds = issueFileds;
+    }
+
+    public Boolean getLocked() {
+        return locked;
+    }
+
+    public void setLocked(Boolean locked) {
+        this.locked = locked;
     }
 }

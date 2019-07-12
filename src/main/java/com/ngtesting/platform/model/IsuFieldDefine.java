@@ -1,16 +1,14 @@
 package com.ngtesting.platform.model;
 
 
-import com.ngtesting.platform.config.ConstantIssue;
-
 public class IsuFieldDefine extends BaseModel {
 	private static final long serialVersionUID = 8734289343612127207L;
 
-	private String code;
+	private String colCode;
 	private String label;
 
-	private ConstantIssue.IssueType type;
-	private ConstantIssue.IssueInput input;
+	private String type;
+	private String input;
 
 	private Boolean defaultShowInFilters;
 	private Integer filterOrdr;
@@ -20,14 +18,16 @@ public class IsuFieldDefine extends BaseModel {
 
 	private Boolean defaultShowInPage;
 	private Integer elemOrdr;
-    private Boolean fullLine;
+	private Boolean readonly;
 
-	public String getCode() {
-		return code;
+	private Boolean fullLine;
+
+	public String getColCode() {
+		return colCode;
 	}
 
-	public void setCode(String code) {
-		this.code = code;
+	public void setColCode(String colCode) {
+		this.colCode = colCode;
 	}
 
 	public String getLabel() {
@@ -38,19 +38,19 @@ public class IsuFieldDefine extends BaseModel {
 		this.label = label;
 	}
 
-	public ConstantIssue.IssueType getType() {
+	public String getType() {
 		return type;
 	}
 
-	public void setType(ConstantIssue.IssueType type) {
+	public void setType(String type) {
 		this.type = type;
 	}
 
-	public ConstantIssue.IssueInput getInput() {
+	public String getInput() {
 		return input;
 	}
 
-	public void setInput(ConstantIssue.IssueInput input) {
+	public void setInput(String input) {
 		this.input = input;
 	}
 
@@ -109,4 +109,12 @@ public class IsuFieldDefine extends BaseModel {
     public void setFullLine(Boolean fullLine) {
         this.fullLine = fullLine;
     }
+
+	public Boolean getReadonly() {
+		return readonly;
+	}
+
+	public void setReadonly(Boolean readonly) {
+		this.readonly = readonly;
+	}
 }

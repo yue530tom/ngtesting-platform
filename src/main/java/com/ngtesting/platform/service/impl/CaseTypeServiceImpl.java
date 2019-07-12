@@ -2,7 +2,7 @@ package com.ngtesting.platform.service.impl;
 
 import com.ngtesting.platform.dao.CaseTypeDao;
 import com.ngtesting.platform.model.TstCaseType;
-import com.ngtesting.platform.service.CaseTypeService;
+import com.ngtesting.platform.service.intf.CaseTypeService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -24,6 +24,11 @@ public class CaseTypeServiceImpl extends BaseServiceImpl implements CaseTypeServ
     @Override
     public TstCaseType get(Integer id, Integer orgId) {
         return caseTypeDao.get(id, orgId);
+    }
+
+    @Override
+    public TstCaseType getDefault(Integer orgId) {
+        return caseTypeDao.getDefault(orgId);
     }
 
     @Override
@@ -51,11 +56,8 @@ public class CaseTypeServiceImpl extends BaseServiceImpl implements CaseTypeServ
 	@Override
 	public Boolean delete(Integer id, Integer orgId) {
         Integer count = caseTypeDao.delete(id, orgId);
-        if (count == 0) {
-            return false;
-        }
 
-        return true;
+        return count > 0;
 	}
 
 	@Override
@@ -64,10 +66,7 @@ public class CaseTypeServiceImpl extends BaseServiceImpl implements CaseTypeServ
         caseTypeDao.removeDefault(orgId);
 
         Integer count = caseTypeDao.setDefault(id, orgId);
-        if (count == 0) {
-            return false;
-        }
-		return true;
+        return count > 0;
 	}
 
 	@Override

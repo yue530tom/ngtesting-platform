@@ -7,9 +7,17 @@ public class TstCaseType extends BaseModel {
 	private String value;
 
 	private String descr;
-    private Boolean isDefault = false;
+    private Boolean defaultVal = false;
     private Integer ordr;
     private Integer orgId;
+
+	public Boolean getDefaultVal() {
+		return defaultVal;
+	}
+
+	public void setDefaultVal(Boolean defaultVal) {
+		this.defaultVal = defaultVal;
+	}
 
 	public String getLabel() {
 		return label;
@@ -46,13 +54,5 @@ public class TstCaseType extends BaseModel {
 
 	public void setOrdr(Integer ordr) {
 		this.ordr = ordr;
-	}
-
-	public Boolean getIsDefault() {
-		return this.isDefault;
-	}
-
-	public void setIsDefault(Boolean isDefault) {
-        this.isDefault = isDefault;
 	}
 }

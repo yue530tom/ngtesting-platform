@@ -2,7 +2,7 @@ package com.ngtesting.platform.bean.websocket;
 
 import com.alibaba.fastjson.JSONObject;
 import com.ngtesting.platform.config.Constant;
-import com.ngtesting.platform.service.ChatService;
+import com.ngtesting.platform.service.intf.ChatService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -26,7 +26,7 @@ public class OptChat {
 //        for (TstThread po: pos) {
 //            TstThread vo = new ThreadVo();
 //            TstThread.copyProperties(vo, po);
-//        	vos.add(vo);
+//        	vos.save(vo);
 //        }
 
 		ret.put("code", Constant.RespCode.SUCCESS.getCode());

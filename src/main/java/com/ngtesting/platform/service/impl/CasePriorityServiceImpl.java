@@ -2,7 +2,7 @@ package com.ngtesting.platform.service.impl;
 
 import com.ngtesting.platform.dao.CasePriorityDao;
 import com.ngtesting.platform.model.TstCasePriority;
-import com.ngtesting.platform.service.CasePriorityService;
+import com.ngtesting.platform.service.intf.CasePriorityService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -24,6 +24,11 @@ public class CasePriorityServiceImpl extends BaseServiceImpl implements CasePrio
     @Override
     public TstCasePriority get(Integer id, Integer orgId) {
         return casePriorityDao.get(id, orgId);
+    }
+
+    @Override
+    public TstCasePriority getDefault(Integer orgId) {
+        return casePriorityDao.getDefault(orgId);
     }
 
     @Override
@@ -53,11 +58,7 @@ public class CasePriorityServiceImpl extends BaseServiceImpl implements CasePrio
     @Transactional
 	public Boolean delete(Integer id, Integer orgId) {
         Integer count = casePriorityDao.delete(id, orgId);
-        if (count == 0) {
-            return false;
-        }
-
-        return true;
+        return count > 0;
 	}
 
 	@Override
@@ -66,10 +67,7 @@ public class CasePriorityServiceImpl extends BaseServiceImpl implements CasePrio
         casePriorityDao.removeDefault(orgId);
 
         Integer count = casePriorityDao.setDefault(id, orgId);
-        if (count == 0) {
-            return false;
-        }
-        return true;
+        return count > 0;
 	}
 
 	@Override

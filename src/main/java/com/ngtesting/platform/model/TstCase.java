@@ -1,5 +1,8 @@
 package com.ngtesting.platform.model;
 
+import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONObject;
+
 import java.util.LinkedList;
 import java.util.List;
 
@@ -7,12 +10,16 @@ public class TstCase extends BaseModel {
 	private static final long serialVersionUID = -5955583523485410239L;
 
 	private String name;
-	private String priority = "medium";
+
+	private Integer typeId;
+    private String typeName;
+	private Integer priorityId;
+    private String priorityName;
+
 	private Integer estimate = 10;
-    private String type = "functional";
 	private String objective;
     private String descr;
-    private Boolean isLeaf;
+	private Boolean isParent;
     private Integer ordr;
 	private Integer pId;
 	private Integer projectId;
@@ -27,29 +34,9 @@ public class TstCase extends BaseModel {
 	private String key;
 	private Boolean reviewResult;
 
-	private String prop01;
-	private String prop02;
-	private String prop03;
-	private String prop04;
-	private String prop05;
+	private Integer level;
 
-	private String prop06;
-	private String prop07;
-	private String prop08;
-	private String prop09;
-	private String prop10;
-
-	private String prop11;
-	private String prop12;
-	private String prop13;
-	private String prop14;
-	private String prop15;
-
-	private String prop16;
-	private String prop17;
-	private String prop18;
-	private String prop19;
-	private String prop20;
+	private String extProp;
 
     public static enum CaseContentType {
         steps("steps"),
@@ -64,6 +51,21 @@ public class TstCase extends BaseModel {
         public String toString() {
             return textVal;
         }
+    }
+
+    public JSONObject getJsonProp() {
+        return JSON.parseObject(extProp);
+    }
+    public void setExtProp(String extProp) {
+        this.extProp = extProp;
+    }
+
+    public Boolean getIsParent() {
+        return isParent;
+    }
+
+    public void setIsParent(Boolean parent) {
+        isParent = parent;
     }
 
     private List<TstCase> children = new LinkedList<>();
@@ -81,8 +83,18 @@ public class TstCase extends BaseModel {
 		this.attachments = attachments;
 	}
 
+	public TstCase(String name, Integer pId, Integer projectId, Integer typeId, Integer priorityId,
+				   Integer createById, Boolean isParent, Integer ordr) {
+		this.name = name;
+		this.pId = pId;
+		this.projectId = projectId;
+		this.typeId = typeId;
+		this.priorityId = priorityId;
+		this.createById = createById;
+		this.isParent = isParent;
+		this.ordr = ordr;
+	}
 	public TstCase() {
-        super();
     }
 
 	public List<TstCaseHistory> getHistories() {
@@ -91,14 +103,6 @@ public class TstCase extends BaseModel {
 
 	public void setHistories(List<TstCaseHistory> histories) {
 		this.histories = histories;
-	}
-
-	public Boolean getLeaf() {
-		return isLeaf;
-	}
-
-	public void setLeaf(Boolean leaf) {
-		isLeaf = leaf;
 	}
 
 	public List<TstCaseComments> getComments() {
@@ -189,14 +193,6 @@ public class TstCase extends BaseModel {
         this.ordr = ordr;
     }
 
-	public String getType() {
-		return type;
-	}
-
-	public void setType(String type) {
-		this.type = type;
-	}
-
 	public String getName() {
 		return name;
 	}
@@ -213,172 +209,17 @@ public class TstCase extends BaseModel {
 		this.pId = pId;
 	}
 
-	public String getProp01() {
-		return prop01;
+	public Integer getTypeId() {
+		return typeId;
 	}
-
-	public void setProp01(String prop01) {
-		this.prop01 = prop01;
+	public void setTypeId(Integer typeId) {
+		this.typeId = typeId;
 	}
-
-	public String getProp02() {
-		return prop02;
+	public Integer getPriorityId() {
+		return priorityId;
 	}
-
-	public void setProp02(String prop02) {
-		this.prop02 = prop02;
-	}
-
-	public String getProp03() {
-		return prop03;
-	}
-
-	public void setProp03(String prop03) {
-		this.prop03 = prop03;
-	}
-
-	public String getProp04() {
-		return prop04;
-	}
-
-	public void setProp04(String prop04) {
-		this.prop04 = prop04;
-	}
-
-	public String getProp05() {
-		return prop05;
-	}
-
-	public void setProp05(String prop05) {
-		this.prop05 = prop05;
-	}
-
-	public String getProp06() {
-		return prop06;
-	}
-
-	public void setProp06(String prop06) {
-		this.prop06 = prop06;
-	}
-
-	public String getProp07() {
-		return prop07;
-	}
-
-	public void setProp07(String prop07) {
-		this.prop07 = prop07;
-	}
-
-	public String getProp08() {
-		return prop08;
-	}
-
-	public void setProp08(String prop08) {
-		this.prop08 = prop08;
-	}
-
-	public String getProp09() {
-		return prop09;
-	}
-
-	public void setProp09(String prop09) {
-		this.prop09 = prop09;
-	}
-
-	public String getProp10() {
-		return prop10;
-	}
-
-	public void setProp10(String prop10) {
-		this.prop10 = prop10;
-	}
-
-	public String getProp11() {
-		return prop11;
-	}
-
-	public void setProp11(String prop11) {
-		this.prop11 = prop11;
-	}
-
-	public String getProp12() {
-		return prop12;
-	}
-
-	public void setProp12(String prop12) {
-		this.prop12 = prop12;
-	}
-
-	public String getProp13() {
-		return prop13;
-	}
-
-	public void setProp13(String prop13) {
-		this.prop13 = prop13;
-	}
-
-	public String getProp14() {
-		return prop14;
-	}
-
-	public void setProp14(String prop14) {
-		this.prop14 = prop14;
-	}
-
-	public String getProp15() {
-		return prop15;
-	}
-
-	public void setProp15(String prop15) {
-		this.prop15 = prop15;
-	}
-
-	public String getProp16() {
-		return prop16;
-	}
-
-	public void setProp16(String prop16) {
-		this.prop16 = prop16;
-	}
-
-	public String getProp17() {
-		return prop17;
-	}
-
-	public void setProp17(String prop17) {
-		this.prop17 = prop17;
-	}
-
-	public String getProp18() {
-		return prop18;
-	}
-
-	public void setProp18(String prop18) {
-		this.prop18 = prop18;
-	}
-
-	public String getProp19() {
-		return prop19;
-	}
-
-	public void setProp19(String prop19) {
-		this.prop19 = prop19;
-	}
-
-	public String getProp20() {
-		return prop20;
-	}
-
-	public void setProp20(String prop20) {
-		this.prop20 = prop20;
-	}
-
-	public String getPriority() {
-		return priority;
-	}
-
-	public void setPriority(String priority) {
-		this.priority = priority;
+	public void setPriorityId(Integer priorityId) {
+		this.priorityId = priorityId;
 	}
 
 	public Integer getEstimate() {
@@ -405,14 +246,6 @@ public class TstCase extends BaseModel {
 		this.objective = objective;
 	}
 
-//    public List<TestCasePropVo> getProps() {
-//        return props;
-//    }
-//
-//    public void setProps(List<TestCasePropVo> props) {
-//        this.props = props;
-//    }
-
 	public List<TstCaseStep> getSteps() {
 		return steps;
 	}
@@ -420,4 +253,28 @@ public class TstCase extends BaseModel {
 	public void setSteps(List<TstCaseStep> steps) {
 		this.steps = steps;
 	}
+
+	public Integer getLevel() {
+		return level;
+	}
+
+	public void setLevel(Integer level) {
+		this.level = level;
+	}
+
+    public String getTypeName() {
+        return typeName;
+    }
+
+    public void setTypeName(String typeName) {
+        this.typeName = typeName;
+    }
+
+    public String getPriorityName() {
+        return priorityName;
+    }
+
+    public void setPriorityName(String priorityName) {
+        this.priorityName = priorityName;
+    }
 }

@@ -2,7 +2,8 @@ package com.ngtesting.platform.service.impl;
 
 import com.ngtesting.platform.dao.IssueStatusDao;
 import com.ngtesting.platform.model.IsuStatus;
-import com.ngtesting.platform.service.IssueStatusService;
+import com.ngtesting.platform.model.IsuStatusCategoryDefine;
+import com.ngtesting.platform.service.intf.IssueStatusService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -22,8 +23,8 @@ public class IssueStatusServiceImpl extends BaseServiceImpl implements IssueStat
     }
 
     @Override
-    public List<IsuStatus> list(Integer orgId, Integer prjId) {
-        List<IsuStatus> ls = issueStatusDao.list(orgId);
+    public List<IsuStatusCategoryDefine> listCategory() {
+        List<IsuStatusCategoryDefine> ls = issueStatusDao.listCategory();
 
         return ls;
     }
@@ -35,6 +36,8 @@ public class IssueStatusServiceImpl extends BaseServiceImpl implements IssueStat
 
     @Override
     public IsuStatus save(IsuStatus vo, Integer orgId) {
+        IsuStatusCategoryDefine cate = issueStatusDao.getCategoryById(vo.getCategoryId());
+        vo.setFinalVal(cate.getFinalVal());
 
         if (vo.getId() == null) {
             Integer maxOrder = issueStatusDao.getMaxOrdrNumb(orgId);
@@ -44,6 +47,7 @@ public class IssueStatusServiceImpl extends BaseServiceImpl implements IssueStat
             vo.setOrdr(maxOrder + 10);
 
             vo.setOrgId(orgId);
+            vo.setBuildIn(Boolean.FALSE);
             issueStatusDao.save(vo);
         } else {
             Integer count = issueStatusDao.update(vo);
@@ -58,11 +62,7 @@ public class IssueStatusServiceImpl extends BaseServiceImpl implements IssueStat
     @Override
     public Boolean delete(Integer id, Integer orgId) {
         Integer count = issueStatusDao.delete(id, orgId);
-        if (count == 0) {
-            return false;
-        }
-
-        return true;
+        return count > 0;
     }
 
     @Override
@@ -71,10 +71,7 @@ public class IssueStatusServiceImpl extends BaseServiceImpl implements IssueStat
         issueStatusDao.removeDefault(orgId);
 
         Integer count = issueStatusDao.setDefault(id, orgId);
-        if (count == 0) {
-            return false;
-        }
-        return true;
+        return count > 0;
     }
 
     @Override

@@ -1,32 +1,30 @@
 package com.ngtesting.platform.model;
 
 
-import com.ngtesting.platform.config.ConstantIssue;
-
 import java.io.Serializable;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
 
 public class IsuField implements Serializable {
 
 	private static final long serialVersionUID = 3168995179136496564L;
 
-    private Integer id;
-	private String code;
+    private Integer fieldId;
+	private String colCode;
 	private String label;
     private String key;
-    private ConstantIssue.IssueType type;
-    private ConstantIssue.IssueInput input;
+    private String type;
+    private String input;
     private Integer ordr;
     private Boolean fullLine;
+    private Boolean required;
+    private Boolean readonly;
+    private Boolean buildIn;
 
     private Boolean display;
 
-    public String getCode() {
-        return code;
-    }
-
-    public void setCode(String code) {
-        this.code = code;
-    }
+    private List<Map> options = new LinkedList<>();
 
     public String getLabel() {
 		return label;
@@ -44,19 +42,19 @@ public class IsuField implements Serializable {
 		this.display = display;
 	}
 
-    public ConstantIssue.IssueType getType() {
+    public String getType() {
         return type;
     }
 
-    public void setType(ConstantIssue.IssueType type) {
+    public void setType(String type) {
         this.type = type;
     }
 
-    public ConstantIssue.IssueInput getInput() {
+    public String getInput() {
         return input;
     }
 
-    public void setInput(ConstantIssue.IssueInput input) {
+    public void setInput(String input) {
         this.input = input;
     }
 
@@ -68,12 +66,12 @@ public class IsuField implements Serializable {
         this.ordr = ordr;
     }
 
-    public Integer getId() {
-        return id;
+    public Integer getFieldId() {
+        return fieldId;
     }
 
-    public void setId(Integer id) {
-        this.id = id;
+    public void setFieldId(Integer fieldId) {
+        this.fieldId = fieldId;
     }
 
     public String getKey() {
@@ -90,5 +88,45 @@ public class IsuField implements Serializable {
 
     public void setFullLine(Boolean fullLine) {
         this.fullLine = fullLine;
+    }
+
+    public Boolean getRequired() {
+        return required;
+    }
+
+    public void setRequired(Boolean required) {
+        this.required = required;
+    }
+
+    public Boolean getReadonly() {
+        return readonly;
+    }
+
+    public void setReadonly(Boolean readonly) {
+        this.readonly = readonly;
+    }
+
+    public List<Map> getOptions() {
+        return options;
+    }
+
+    public void setOptions(List<Map> options) {
+        this.options = options;
+    }
+
+    public String getColCode() {
+        return colCode;
+    }
+
+    public void setColCode(String colCode) {
+        this.colCode = colCode;
+    }
+
+    public Boolean getBuildIn() {
+        return buildIn;
+    }
+
+    public void setBuildIn(Boolean buildIn) {
+        this.buildIn = buildIn;
     }
 }

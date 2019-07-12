@@ -7,7 +7,7 @@ import com.ngtesting.platform.dao.ProjectPrivilegeDao;
 import com.ngtesting.platform.model.TstProject;
 import com.ngtesting.platform.model.TstProjectAccessHistory;
 import com.ngtesting.platform.model.TstUser;
-import com.ngtesting.platform.service.*;
+import com.ngtesting.platform.service.intf.*;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,7 +25,7 @@ public class ProjectServiceImpl extends BaseServiceImpl implements ProjectServic
 	private static final Log log = LogFactory.getLog(ProjectServiceImpl.class);
 
     @Autowired
-	HistoryService historyService;
+    ProjectHistoryService historyService;
 	@Autowired
 	private ProjectDao projectDao;
     @Autowired
@@ -38,7 +38,7 @@ public class ProjectServiceImpl extends BaseServiceImpl implements ProjectServic
     @Autowired
     private UserService userService;
     @Autowired
-	ProjectPrivilegeService projectPrivilegeService;
+    ProjectPrivilegeService projectPrivilegeService;
 
     @Autowired
     AuthService authService;
@@ -51,15 +51,15 @@ public class ProjectServiceImpl extends BaseServiceImpl implements ProjectServic
 	@Override
 	public List<TstProject> list(Integer orgId, Integer userId, String keywords, Boolean disabled) {
 		Map<String, Map<String, Boolean>> privMap = new HashMap();
-        List<Map<String, String>> projectPrivs = projectPrivilegeDao.listByOrgProjectsForUser(userId, orgId);
+        List<Map<String, String>> projectPrivs = projectPrivilegeDao.listForUser(userId, orgId, "org");
         for (Map<String, String> map : projectPrivs) {
 		    if (privMap.get(map.get("projectId")) == null) {
 		        String prjId = map.get("projectId");
                 privMap.put(prjId, new HashMap());
             }
 
-			String str = map.get("code") + "-" + map.get("action");
-            privMap.get(map.get("projectId").toString()).put(str, true);
+			String str = map.get("code") + ":" + map.get("action");
+            privMap.get(map.get("projectId")).put(str, true);
 		}
 
         List<TstProject> pos = projectDao.query(orgId, keywords, disabled);
@@ -69,8 +69,8 @@ public class ProjectServiceImpl extends BaseServiceImpl implements ProjectServic
 	}
 
 	@Override
-	public List<TstProject> listProjectGroups(Integer orgId) {
-		List<TstProject> pos = projectDao.listProjectGroups(orgId);
+	public List<TstProject> listProjectGroups(Integer orgId, Integer groupId) {
+		List<TstProject> pos = projectDao.listProjectGroups(orgId, groupId);
 		this.genGroupVos(pos);
 		return pos;
 	}
@@ -94,16 +94,16 @@ public class ProjectServiceImpl extends BaseServiceImpl implements ProjectServic
 	}
 
     @Override
-    public TstProject getWithPrivs(Integer id, Integer userId) {
-        if (id == null) {
+    public TstProject getWithPrivs(Integer projectId, Integer userId) {
+        if (projectId == null) {
             return null;
         }
-        TstProject po = projectDao.get(id);
+        TstProject po = projectDao.get(projectId);
         Map<String, Boolean> privMap = new HashMap();
-        List<Map<String, String>> projectPrivs = projectPrivilegeDao.listByProjectForUser(
-                userId, id, po.getOrgId());
+        List<Map<String, String>> projectPrivs = projectPrivilegeDao.listForUser(
+                userId, projectId, "project");
         for (Map<String, String> map : projectPrivs) {
-            String str = map.get("code") + "-" + map.get("action");
+            String str = map.get("code") + ":" + map.get("action");
             privMap.put(str, true);
         }
         po.setPrivs(privMap);
@@ -144,7 +144,7 @@ public class ProjectServiceImpl extends BaseServiceImpl implements ProjectServic
 //        设置为默认项目？
 //        if(TstProject.ProjectType.project.equals(vo.getType())) {
 //            historyService.create(vo.getCode(), user,
-//                    isNew? Constant.MsgType.create.msg: Constant.MsgType.create.update.msg,
+//                    isNew? Constant.HistoryMsgTemplate.create.msg: Constant.HistoryMsgTemplate.create.update.msg,
 //                    TstHistory.TargetType.project, vo.getCode(), vo.getName());
 //        }
 
@@ -214,10 +214,16 @@ public class ProjectServiceImpl extends BaseServiceImpl implements ProjectServic
         }
     }
 
+    @Override
+    @Transactional
+    public TstProject changeDefaultPrj(TstUser user, Integer projectId) {
+	    return changeDefaultPrj(user, projectId, true);
+    }
+
 	@Override
     @Transactional
-	public TstProject changeDefaultPrj(TstUser user, Integer projectId) {
-	    if (projectId == null) {
+	public TstProject changeDefaultPrj(TstUser user, Integer projectId, Boolean pushMsg) {
+	    if (projectId == null) { // 删除的时候
             setUserDefaultPrjToNullForDelete(projectId);
             projectDao.setDefault(user.getId(), null, null);
 
@@ -232,20 +238,18 @@ public class ProjectServiceImpl extends BaseServiceImpl implements ProjectServic
 
 		TstProject po = get(projectId);
 
-        if (authService.noProjectAndProjectGroupPrivilege(user.getId(), po)) {
-            return null;
-        }
-
         if (po.getType().equals(TstProject.ProjectType.project)) {
-            projectDao.genHistory(po.getOrgId(), user.getId(), projectId, po.getName());
+            projectDao.genHistory(po.getOrgId(), projectId, po.getName(), user.getId());
 
             projectDao.setDefault(user.getId(), projectId, po.getName());
 
             user.setDefaultPrjId(projectId);
             user.setDefaultPrjName(po.getName());
 
-            pushSettingsService.pushRecentProjects(user);
-            pushSettingsService.pushPrjSettings(user);
+            if (pushMsg) {
+                pushSettingsService.pushRecentProjects(user);
+                pushSettingsService.pushPrjSettings(user);
+            }
 		}
 
 		return po;
@@ -254,7 +258,7 @@ public class ProjectServiceImpl extends BaseServiceImpl implements ProjectServic
     @Override
     public void updateNameInHisoty(Integer projectId, Integer userId) {
         TstProject project = get(projectId);
-        projectDao.genHistory(project.getOrgId(), userId, projectId, project.getName());
+        projectDao.genHistory(project.getOrgId(), projectId, project.getName(), userId);
     }
 
 	@Override
@@ -282,18 +286,18 @@ public class ProjectServiceImpl extends BaseServiceImpl implements ProjectServic
             for (TstProject child : children) {
                 child = genVo(child, privMap);
 
-                if (child.getPrivs() != null
-                        && child.getPrivs().get("project-view") != null
-                        && child.getPrivs().get("project-view") ) {
-                    childCanView = true;
-                }
+//                if (child.getPrivs() != null
+//                        && child.getPrivs().getDetail("project-view") != null
+//                        && child.getPrivs().getDetail("project-view") ) {
+//                    childCanView = true;
+//                }
                 voList.add(child);
             }
             po.setChildrenNumb(po.getChildren().size());
 
-            if (childCanView) {
-                po.getPrivs().put("project-view", true);
-            }
+//            if (childCanView) {
+//                po.getPrivs().put("project-view", true);
+//            }
         }
 
         return voList;

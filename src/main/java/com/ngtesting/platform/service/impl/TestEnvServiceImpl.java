@@ -5,7 +5,7 @@ import com.alibaba.fastjson.JSONObject;
 import com.ngtesting.platform.dao.TestEnvDao;
 import com.ngtesting.platform.model.TstEnv;
 import com.ngtesting.platform.model.TstUser;
-import com.ngtesting.platform.service.TestEnvService;
+import com.ngtesting.platform.service.intf.TestEnvService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -36,16 +36,17 @@ public class TestEnvServiceImpl extends BaseServiceImpl implements TestEnvServic
         TstEnv vo = JSON.parseObject(JSON.toJSONString(json), TstEnv.class);
         Integer id = vo.getId();
 
-        vo.setProjectId(user.getDefaultPrjId());
-
         if (id == null) {
+            vo.setProjectId(user.getDefaultPrjId());
+            vo.setOrgId(user.getDefaultOrgId());
+
             Integer maxOrder = envDao.getMaxOrdrNumb(vo.getProjectId());
             if (maxOrder == null) {
                 maxOrder = 0;
             }
             vo.setOrdr(maxOrder + 10);
 
-            envDao.add(vo);
+            envDao.save(vo);
         } else {
             Integer count = envDao.update(vo);
             if (count == 0) {

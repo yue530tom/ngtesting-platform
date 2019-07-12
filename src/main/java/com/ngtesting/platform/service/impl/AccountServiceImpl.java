@@ -6,19 +6,19 @@ import com.ngtesting.platform.dao.AccountVerifyCodeDao;
 import com.ngtesting.platform.dao.UserDao;
 import com.ngtesting.platform.model.TstUser;
 import com.ngtesting.platform.model.TstUserVerifyCode;
-import com.ngtesting.platform.service.AccountService;
-import com.ngtesting.platform.service.AccountVerifyCodeService;
-import com.ngtesting.platform.service.MailService;
-import com.ngtesting.platform.service.PropService;
+import com.ngtesting.platform.service.intf.AccountService;
+import com.ngtesting.platform.service.intf.AccountVerifyCodeService;
+import com.ngtesting.platform.service.intf.MailService;
+import com.ngtesting.platform.service.intf.PropService;
 import com.ngtesting.platform.utils.PasswordEncoder;
+import org.apache.shiro.SecurityUtils;
+import org.apache.shiro.subject.Subject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.UUID;
 
 @Service
 public class AccountServiceImpl implements AccountService {
@@ -82,15 +82,13 @@ public class AccountServiceImpl implements AccountService {
             return null;
         }
 
-        TstUser user = userDao.get(code.getRefId());
+        TstUser user = userDao.get(code.getUserId());
         if (user == null) {
             return null;
         }
 
         verifyCodeDao.disableCode(code.getId());
 
-        String newToken = UUID.randomUUID().toString();
-        user.setToken(newToken);
         accountDao.loginWithVerifyCode(user);
 
         return user;
@@ -98,39 +96,25 @@ public class AccountServiceImpl implements AccountService {
 
     @Override
     @Transactional
-    public TstUser login(String email, String password, Boolean rememberMe) {
-        TstUser user = userDao.getByEmail(email);
-        if (user == null) {
-            return null;
-        }
-
-        String salt = userDao.getSalt(user.getId());
-        String passwdInDb = user.getPassword();
-
-        PasswordEncoder passwordEncoder = new  PasswordEncoder(salt);
-        Boolean pass = passwordEncoder.checkPassword(passwdInDb, password);
-        if (!pass) {
-            return null;
-        }
-
-        String newToken = UUID.randomUUID().toString();
-        accountDao.login(user.getId(), newToken, new Date());
-        user.setToken(newToken);
-
-        return user;
-    }
-
-    @Override
-    @Transactional
     public Boolean logout(String email) {
-        Integer matched = accountDao.logout(email);
-        return matched > 0;
+        Subject subject = SecurityUtils.getSubject();
+        subject.logout();
+
+//        Integer matched = accountDao.logout(email);
+//        return matched > 0;
+
+        return true;
     }
 
     @Override
     @Transactional
     public Boolean changePassword(Integer userId, String oldPassword, String password) {
-        String salt = userDao.getSalt(userId);
+        TstUser user = userDao.get(userId);
+        if (user == null) {
+            return false;
+        }
+
+        String salt = user.getSalt();
 
         PasswordEncoder passwordEncoder = new PasswordEncoder(salt);
         String oldPasswdInDb = passwordEncoder.encodePassword(oldPassword);
@@ -178,18 +162,16 @@ public class AccountServiceImpl implements AccountService {
             return null;
         }
 
-        TstUser user = userDao.get(code.getRefId());
+        TstUser user = userDao.get(code.getUserId());
         if (user == null) {
             return null;
         }
 
         verifyCodeDao.disableCode(code.getId());
 
-        String newToken = UUID.randomUUID().toString();
-        user.setToken(newToken);
         user.setPassword(password);
 
-        String salt = userDao.getSalt(user.getId());
+        String salt = user.getSalt();
 
         PasswordEncoder passwordEncoder = new PasswordEncoder(salt);
         String passwdInDb = passwordEncoder.encodePassword(password);

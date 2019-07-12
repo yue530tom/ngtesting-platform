@@ -8,8 +8,8 @@ import com.ngtesting.platform.dao.ProjectRolePrivilegeRelationDao;
 import com.ngtesting.platform.model.TstProjectPrivilegeDefine;
 import com.ngtesting.platform.model.TstProjectRole;
 import com.ngtesting.platform.model.TstProjectRolePriviledgeRelation;
-import com.ngtesting.platform.service.OrgPrivilegeService;
-import com.ngtesting.platform.service.ProjectPrivilegeService;
+import com.ngtesting.platform.service.intf.OrgPrivilegeService;
+import com.ngtesting.platform.service.intf.ProjectPrivilegeService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -113,16 +113,14 @@ public class ProjectPrivilegeServiceImpl extends BaseServiceImpl implements Proj
             return map;
         }
 
-		List<Map<String, String>> ls = projectPrivilegeDao.listByProjectForUser(userId, prjId, orgId);
+		List<Map<String, String>> ls = projectPrivilegeDao.listForUser(userId, prjId, "project");
 		for (Map<String, String> item : ls) {
-			map.put(item.get("code") + "-" + item.get("action"), true);
+			map.put(item.get("code") + ":" + item.get("action"), true);
 		}
 
         Map<String, Boolean> orgPrivileges = orgPrivilegeService.listByUser(userId, orgId);
-        if (orgPrivileges.containsKey("project-admin") && orgPrivileges.get("project-admin")) {
-            map.put("project-view", true);
-            map.put("project-maintain", true);
-            map.put("project-delete", true);
+        if (orgPrivileges.containsKey("project:*") && orgPrivileges.get("project:*")) {
+            map.put("project:*", true);
         }
 
 		return map;

@@ -7,13 +7,13 @@ import com.ngtesting.platform.model.TstHistory;
 import com.ngtesting.platform.model.TstOrg;
 import com.ngtesting.platform.model.TstPlan;
 import com.ngtesting.platform.model.TstUser;
-import com.ngtesting.platform.service.*;
+import com.ngtesting.platform.service.intf.OrgService;
+import com.ngtesting.platform.service.intf.ProjectHistoryService;
+import com.ngtesting.platform.service.intf.TestPlanService;
+import com.ngtesting.platform.servlet.PrivOrg;
+import org.apache.shiro.SecurityUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
 import java.util.HashMap;
@@ -21,29 +21,25 @@ import java.util.List;
 import java.util.Map;
 
 
-@Controller
+@RestController
 @RequestMapping(Constant.API_PATH_CLIENT + "org/")
 public class OrgAction extends BaseAction {
 	@Autowired
     OrgService orgService;
 
 	@Autowired
-	TestPlanService planService;
+    TestPlanService planService;
 	@Autowired
-    HistoryService historyService;
+    ProjectHistoryService historyService;
 
 	@RequestMapping(value = "view", method = RequestMethod.POST)
-	@ResponseBody
+	@PrivOrg(perms = {"belongs_to:org"})
 	public Map<String, Object> view(HttpServletRequest request, @RequestBody JSONObject json) {
 		Map<String, Object> ret = new HashMap<String, Object>();
-		TstUser user = (TstUser) request.getSession().getAttribute(Constant.HTTP_SESSION_USER_PROFILE);
-		Integer orgId = json.getInteger("id");
+		TstUser user = (TstUser) SecurityUtils.getSubject().getPrincipal();
+		Integer orgId = json.getInteger("orgId");
 
-        if (userNotInOrg(user.getId(), orgId)) { // 不在组织中
-            return authFail();
-        }
-
-		TstOrg po = orgService.get(orgId);
+		TstOrg po = orgService.get(orgId, user);
 
 		List<TstPlan> planPos = planService.listByOrg(orgId);
 		planService.genVos(planPos);
@@ -59,20 +55,18 @@ public class OrgAction extends BaseAction {
 	}
 
 	// 来源于前端上下文的变化
-	@RequestMapping(value = "change", method = RequestMethod.POST)
-	@ResponseBody
-	public Map<String, Object> change(HttpServletRequest request, @RequestBody JSONObject json) {
+	@RequestMapping(value = "changeContext", method = RequestMethod.POST)
+	@PrivOrg(perms = {"belongs_to:org"})
+	public Map<String, Object> changeContext(HttpServletRequest request, @RequestBody JSONObject json) {
 		Map<String, Object> ret = new HashMap<String, Object>();
 
-		TstUser user = (TstUser) request.getSession().getAttribute(Constant.HTTP_SESSION_USER_PROFILE);
-		Integer orgId = json.getInteger("id");
-        if (userNotInOrg(user.getId(), orgId)) {
-            return authFail();
-        }
+		TstUser user = (TstUser) SecurityUtils.getSubject().getPrincipal();
+		Integer orgId = json.getInteger("orgId");
 
 		orgService.changeDefaultOrg(user, orgId); // 涵盖项目设置WS推送消息
 
 		ret.put("code", Constant.RespCode.SUCCESS.getCode());
+		ret.put("projectId", user.getDefaultPrjId());
 
 		return ret;
 	}
